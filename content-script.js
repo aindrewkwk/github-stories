@@ -395,3 +395,104 @@ function updateSingleStoryView(story, storyId, storyIndex) {
 
   updateStoryViewWidth();
 }
+
+(function initGithubChatWidget() {
+    if (window.top !== window || document.getElementById('github-stories-chat')) return;
+    if (location.hostname !== 'github.com') return;
+
+   const styles = document.createElement('style');
+    styles.textContent = `
+        #github-stories-chat { position: fixed; right: 20px; bottom: 20px; z-index: 99999; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+            #github-stories-chat button { font: inherit; }
+                .github-stories-chat-toggle { width: 56px; height: 56px; border-radius: 50%; border: 0; color: #fff; background: #0969da; box-shadow: 0 8px 24px rgba(31,35,40,.24); cursor: pointer; font-weight: 700; }
+                    .github-stories-chat-panel { display: none; width: 340px; max-width: calc(100vw - 32px); height: 430px; max-height: calc(100vh - 120px); margin-bottom: 12px; overflow: hidden; border: 1px solid #d0d7de; border-radius: 12px; background: #fff; box-shadow: 0 16px 48px rgba(31,35,40,.24); color: #24292f; }
+                        .github-stories-chat-panel.is-open { display: flex; flex-direction: column; }
+                            .github-stories-chat-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; color: #fff; background: #24292f; }
+                                .github-stories-chat-title { font-weight: 700; }
+                                    .github-stories-chat-subtitle { font-size: 12px; opacity: .78; }
+                                        .github-stories-chat-close { border: 0; background: transparent; color: #fff; cursor: pointer; font-size: 20px; line-height: 1; }
+                                            .github-stories-chat-messages { flex: 1; padding: 12px; overflow-y: auto; background: #f6f8fa; }
+                                                .github-stories-chat-message { margin: 0 0 10px; padding: 10px 12px; border-radius: 10px; background: #fff; border: 1px solid #d8dee4; line-height: 1.35; }
+                                                    .github-stories-chat-message.user { margin-left: 36px; background: #ddf4ff; border-color: #b6e3ff; }
+                                                        .github-stories-chat-form { display: flex; gap: 8px; padding: 10px; border-top: 1px solid #d8dee4; background: #fff; }
+                                                            .github-stories-chat-input { flex: 1; min-width: 0; padding: 8px 10px; border: 1px solid #d0d7de; border-radius: 6px; }
+                                                                .github-stories-chat-send { border: 0; border-radius: 6px; background: #2da44e; color: #fff; padding: 0 12px; cursor: pointer; font-weight: 600; }
+                                                                    .github-stories-chat-owner { color: inherit; font-weight: 600; text-decoration: underline; }
+                                                                      `;
+    document.head.appendChild(styles);
+
+   const owner = location.pathname.split('/').filter(Boolean)[0] || 'GitHub';
+    const repo = location.pathname.split('/').filter(Boolean).slice(0, 2).join('/') || 'home';
+    const storageKey = `github-stories-chat:${repo}`;
+
+   const root = document.createElement('div');
+    root.id = 'github-stories-chat';
+    root.innerHTML = `
+        <section class="github-stories-chat-panel" aria-label="GitHub chat">
+              <div class="github-stories-chat-header">
+                      <div>
+                                <div class="github-stories-chat-title">Chat</div>
+                                          <div class="github-stories-chat-subtitle">Conversation with <a class="github-stories-chat-owner" target="_blank" rel="noreferrer"></a></div>
+                                                  </div>
+                                                          <button class="github-stories-chat-close" type="button" aria-label="Close chat">x</button>
+                                                                </div>
+                                                                      <div class="github-stories-chat-messages"></div>
+                                                                            <form class="github-stories-chat-form">
+                                                                                    <input class="github-stories-chat-input" type="text" placeholder="Write a message..." autocomplete="off" />
+                                                                                            <button class="github-stories-chat-send" type="submit">Send</button>
+                                                                                                  </form>
+                                                                                                      </section>
+                                                                                                          <button class="github-stories-chat-toggle" type="button" aria-label="Open GitHub chat">Chat</button>
+                                                                                                            `;
+    document.body.appendChild(root);
+
+   const panel = root.querySelector('.github-stories-chat-panel');
+    const toggle = root.querySelector('.github-stories-chat-toggle');
+    const close = root.querySelector('.github-stories-chat-close');
+    const form = root.querySelector('.github-stories-chat-form');
+    const input = root.querySelector('.github-stories-chat-input');
+    const messages = root.querySelector('.github-stories-chat-messages');
+    const ownerLink = root.querySelector('.github-stories-chat-owner');
+    const savedMessages = JSON.parse(localStorage.getItem(storageKey) || '[]');
+
+   ownerLink.textContent = `@${owner}`;
+    ownerLink.href = `https://github.com/${owner}`;
+
+   function renderMessages() {
+         messages.innerHTML = '';
+
+      const intro = document.createElement('p');
+         intro.className = 'github-stories-chat-message';
+         intro.textContent = 'Use this lightweight chat space while browsing GitHub. Messages are saved locally for this repository.';
+         messages.appendChild(intro);
+
+      savedMessages.forEach((message) => {
+              const item = document.createElement('p');
+              item.className = 'github-stories-chat-message user';
+              item.textContent = message;
+              messages.appendChild(item);
+      });
+
+      messages.scrollTop = messages.scrollHeight;
+   }
+
+   toggle.addEventListener('click', () => {
+         panel.classList.toggle('is-open');
+         if (panel.classList.contains('is-open')) input.focus();
+   });
+
+   close.addEventListener('click', () => panel.classList.remove('is-open'));
+
+   form.addEventListener('submit', (event) => {
+         event.preventDefault();
+         const value = input.value.trim();
+         if (!value) return;
+
+                             savedMessages.push(value);
+         localStorage.setItem(storageKey, JSON.stringify(savedMessages));
+         input.value = '';
+         renderMessages();
+   });
+
+   renderMessages();
+})();
