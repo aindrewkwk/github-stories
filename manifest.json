@@ -1,36 +1,35 @@
 {
-  "name": "GitHub Stories",
-  "version": "0.1",
-  "description": "Stories on GitHub",
-  "permissions": [
-    "activeTab",
-    "declarativeContent",
-    "storage"
-  ],
-  "background": {
-    "scripts": [
-      "background.js"
+    "name": "GitHub Stories",
+    "version": "0.1",
+    "description": "Stories on GitHub",
+    "permissions": [
+          "activeTab",
+          "declarativeContent",
+          "storage"
     ],
-    "persistent": false
-  },
-  "page_action": {},
-  "content_scripts": [
-    {
-      "matches": [
-        "https://github.com/",
-        "https://github.com/orgs/*"
-      ],
-      "js": [
-        "content-script.js"
-      ],
-      "css": [
-        "story-list.css",
-        "story-view.css"
-      ]
-    }
-  ],
-  "icons": {
-    "128": "github-stories.png"
-  },
-  "manifest_version": 2
+    "background": {
+          "scripts": [
+                  "background.js"
+          ],
+          "persistent": false
+    },
+    "page_action": {},
+    "content_scripts": [
+          {
+                  "matches": [
+                            "https://github.com/*"
+                  ],
+                  "js": [
+                            "content-script.js"
+                  ],
+                  "css": [
+                            "story-list.css",
+                            "story-view.css"
+                  ]
+          }
+    ],
+    "icons": {
+          "128": "github-stories.png"
+    },
+    "manifest_version": 2
 }
